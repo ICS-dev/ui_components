@@ -17,8 +17,8 @@ var setViewerWindow1 = function (sandbox) {
     var yearCheckbox = '#series-tools-' + sandbox.container + " #year-checkbox"
     var inputYear = '#series-tools-' + sandbox.container + " #series_year-input"
 
-    var episodesCheckbox = '#series-tools-' + sandbox.container + " #episodes-checkbox"
-    var inputEpisodes = '#series-tools-' + sandbox.container + " #series_episodes-input"
+    var seasonsCheckbox = '#series-tools-' + sandbox.container + " #episodes-checkbox"
+    var inputSeasons = '#series-tools-' + sandbox.container + " #series_episodes-input"
 
     var keywordsCheckbox = '#series-tools-' + sandbox.container + " #keywords-checkbox"
     var inputKeywords = '#series-tools-' + sandbox.container + " #series_keywords-input"
@@ -38,24 +38,23 @@ var setViewerWindow1 = function (sandbox) {
                     var yearChecked = $(yearCheckbox).is(':checked');
                     var yearString = $(inputYear).val();
 
-                    var episodesChecked = $(episodesCheckbox).is(':checked');
-                    var episodesString = $(inputEpisodes).val();
+                    var seasonsChecked = $(seasonsCheckbox).is(':checked');
+                    var episodesString = $(inputSeasons).val();
 
                     var keywordsChecked = $(keywordsCheckbox).is(':checked');
                     var keywordsString = $(inputKeywords).val();
 
-                    if ((keywordsString.length != 0 && keywordsChecked) || yearChecked || episodesChecked) {
+                    if ((keywordsString.length != 0 && keywordsChecked) || yearChecked || seasonsChecked) {
                         var searchParams = {
                             needsSearchYear: yearChecked,
                             year: yearString.toString(),
-                            needsSearchEpisodes: episodesChecked,
-                            episodes: episodesString.toString(),
+                            needsSearchSeasons: seasonsChecked,
+                            seasons: episodesString.toString(),
                             needsSearchKeywords: keywordsChecked,
                             keywordsToSearch: keywordsString,
                         };
 
-                        let userSeries = findSeries(searchParams);
-                        showSeries(userSeries);
+                        findSeries(searchParams);
                     }
                 });
             });
@@ -77,143 +76,159 @@ var setViewerWindow1 = function (sandbox) {
 SCWeb.core.ComponentManager.appendComponentInitialize(SeriesSearchComponent);
 
 function findSeries(searchParams) {
-    var needsSearchYear = searchParams.needsSearchYear;
-    var seriesYear = searchParams.year;
-    var needsSearchEpisodes = searchParams.needsSearchEpisodes;
-    var seriesSeasons = searchParams.episodes;
-    var needsSearchKeywords = searchParams.needsSearchKeywords;
-    var keywordsToSearch = searchParams.keywordsToSearch;
+    let seriesNodes = [];
 
-    var seriesNodes = [];
     SCWeb.core.Server.resolveScAddr(['concept_series', 'nrel_creation_year', 'nrel_number_of_seasons', 'nrel_description'], function (keynodes) {
-        var conceptSeries = keynodes['concept_series'];
-        var nrelYear = keynodes['nrel_creation_year']
-        var nrelSeasons = keynodes['nrel_number_of_seasons']
-        var nrelDescription = keynodes['nrel_description']
+        let conceptSeries = keynodes['concept_series'];
+        let nrelYear = keynodes['nrel_creation_year'];
+        let nrelSeasons = keynodes['nrel_number_of_seasons'];
+        var nrelDescription = keynodes['nrel_description'];
 
-        window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_3F_A_A, [
+        let promise = window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_3F_A_A, [
             conceptSeries,
             sc_type_arc_pos_const_perm,
             sc_type_node,
-        ]).done(function (res) {
-            for (var i = 0; i < res.length; ++i) {
-                seriesNodes.push(res[i][2]);
+        ]).done(function (result) {
+            for (let i = 0; i < result.length; ++i) {
+                seriesNodes.push(result[i][2]);
             }
-            console.log("Found all series:")
+            console.log("Found all series:");
             console.log(seriesNodes);
-        }).then(function () {
-            var seriesCopy = []
-            if (needsSearchYear) {
-                console.log("NEEDS YEAR")
-                for (var i = 0; i < seriesNodes.length; ++i) {
-                    var ser = seriesNodes[i];
-                    console.log("Series sc_addr: " + ser);
-                    console.log("Starting iteration to find sc_links...");
+        }).done(function () {
+            let promises = [];
+            let promises2 = [];
+            let foundYears = [];
 
-                    window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_5F_A_A_A_F, [
+            if (searchParams.needsSearchYear) {
+                console.log("Needs year searching...")
+                for (let i = 0; i < seriesNodes.length; ++i) {
+                    let ser = seriesNodes[i];
+                    promises.push(window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_5F_A_A_A_F, [
                         ser,
                         sc_type_const,
                         sc_type_link,
                         sc_type_arc_pos_const_perm,
                         nrelYear
-                    ]).done(function(res2) {
-                        window.sctpClient.get_link_content(res2[0][2]).done(function (yearStr) {
-                            console.log("Getting " + res2[0][2] + " content: " + yearStr)
-                            if (yearStr == seriesYear) {
-                                seriesCopy.push(res2[0][0]);
-                                console.log(res2[0][0] + " mathes, adding to copyList...")
+                    ]).done(function (result) {
+                        promises2.push(window.sctpClient.get_link_content(result[0][2]).done(function (yearStr) {
+                            if (yearStr == searchParams.year) {
+                                foundYears.push(result[0][0]);
+                                console.log(result[0][0] + " mathes year, adding to copyList...")
                             }
-                        });
-                    });
-                    function sleep(ms) {
-                        ms += new Date().getTime();
-                        while (new Date() < ms){}
-                        console.log("Sleeping")
+                        }));
+                    }));
+                }
+            }
+            console.log(promises)
+            console.log(promises2);
+            $.when.apply($, promises).done(function () {
+                console.log(promises2);
+                $.when.apply($, promises2).done(function () {
+                    if (searchParams.needsSearchYear) {
+                        seriesNodes = seriesNodes.filter(item => foundYears.includes(item));
+                        console.log("Filtered years");
+                        console.log(seriesNodes);
+                    }
+                }).done(function () {
+                    let promisesSer = [];
+                    let promises2Ser = [];
+                    let foundSeasons = []
+
+                    if (searchParams.needsSearchSeasons) {
+                        console.log("Needs seasons search...")
+                        for (let i = 0; i < seriesNodes.length; ++i) {
+                            let ser = seriesNodes[i];
+                            console.log("Series (in seasons) sc_addr: " + ser);
+                            promisesSer.push(window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_5F_A_A_A_F, [
+                                ser,
+                                sc_type_const,
+                                sc_type_link,
+                                sc_type_arc_pos_const_perm,
+                                nrelSeasons
+                            ]).then(function (result2) {
+                                console.log("Series iterator done")
+                                promises2Ser.push(window.sctpClient.get_link_content(result2[0][2]).done(function (seasonsStr) {
+                                    console.log("Link content: " + seasonsStr)
+                                    if (+seasonsStr >= +searchParams.seasons) {
+                                        foundSeasons.push(result2[0][0]);
+                                        console.log(result2[0][0] + " mathes seasons, adding to copyList...")
+                                    }
+                                }));
+                            }, function() {console.log("ERROR")}));
                         }
-                    sleep(1000);
-                        
-                }
-                console.log("Ended iteration ")
-                seriesNodes = seriesCopy;
-                seriesCopy = [];
-            }
-            console.log("After finding year")
-            console.log(seriesNodes);
-        }).then(function () {
-            if (needsSearchEpisodes) {
-                console.log("NEEDS EPISODES")
-                for (ser in seriesNodes) {
-                    window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_5F_A_A_A_F, [
-                        ser,
-                        sc_type_const,
-                        sc_type_node,
-                        sc_type_arc_pos_const_perm,
-                        nrelSeasons
-                    ]).done(function (res2) {
-                        var seasons = [];
-                        for (r in res2) { seasons.push(res2[r][2]); }
-                        window.sctpClient.resolveIdentifiers(seasons, function (idf) {
-                            for (q in idf) {
-                                if (idf[q] == seriesSeasons) {
-                                    seriesCopy.push(res2[r][0]);
+                    }
+
+                    console.log("Near $.when in series")
+                    $.when.apply($, promisesSer).done(function () {
+                        console.log("promises1 good")
+                        console.log(promises2Ser)
+
+                        $.when.apply($, promises2Ser).done(function () {
+                            console.log("promises2 good")
+                            if (searchParams.needsSearchSeasons) {
+                                seriesNodes = seriesNodes.filter(item => foundSeasons.includes(item));
+                                console.log("Filtered seasons");
+                                console.log(seriesNodes);
+                            }
+                        }).done(function () {
+                            let promises = [];
+                            let promises2 = [];
+                            let foundKeywords = [];
+
+                            if (searchParams.needsSearchKeywords) {
+                                console.log("Needs keywords search...")
+
+                                for (let i = 0; i < seriesNodes.length; ++i) {
+                                    let ser = seriesNodes[i];
+                                    console.log("Series (in keywords) sc_addr: " + ser);
+                                    promises.push(window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_5F_A_A_A_F, [
+                                        ser,
+                                        sc_type_const,
+                                        sc_type_link,
+                                        sc_type_arc_pos_const_perm,
+                                        nrelDescription
+                                    ]).done(function (result3) {
+                                        promises2.push(window.sctpClient.get_link_content(result3[0][2]).done(function (descrStr) {
+                                            console.log(descrStr);
+                                            console.log(searchParams.keywordsToSearch);
+                                            if( searchParams.keywordsToSearch.split(', ').some(keyword => descrStr.includes(keyword) )) {
+                                                foundKeywords.push(result3[0][0]);
+                                                console.log(result3[0][0] + " mathes keywords, adding to copyList...")
+                                            }
+                                        }));
+                                    }));
                                 }
                             }
+
+                            $.when.apply($, promises).done(function () {
+                                $.when.apply($, promises2).done(function () {
+                                    if (searchParams.needsSearchKeywords) {
+                                        seriesNodes = seriesNodes.filter(item => foundKeywords.includes(item));
+                                        console.log("Filtered keywords");
+                                        console.log(seriesNodes);
+                                    }
+                                }).done(function () {
+                                    console.log("Showing " + seriesNodes);
+                                    if (seriesNodes.length == 0) {
+                                        return;
+                                    }
+                                    let kont;
+                                    let crNodePromise = window.sctpClient.create_node(sc_type_const).done(function (kontur) {
+                                        kont = kontur;
+                                        for (let i = 0; i < seriesNodes.length; ++i) {
+                                            window.sctpClient.create_arc(sc_type_arc_pos_const_perm, kontur, seriesNodes[i]);
+                                        }
+                                    });
+
+                                    $.when(crNodePromise).done(function () {
+                                        SCWeb.core.Main.doDefaultCommand([kont]);
+                                    });
+                                });
+                            });
                         });
                     });
-                }
-                seriesNodes = seriesCopy;
-                seriesCopy = [];
-            }
-        }).then(function () {
-            if (needsSearchKeywords) {
-                console.log("NEEDS KEYWORDS")
-                for (ser in seriesNodes) {
-                    window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_5F_A_A_A_F, [
-                        ser,
-                        sc_type_const,
-                        sc_type_node,
-                        sc_type_arc_pos_const_perm,
-                        nrelDescription
-                    ]).done(function (res2) {
-                        var descriptions = [];
-                        for (r in res2) { descriptions.push(res2[r][2]); }
-                        window.sctpClient.resolveIdentifiers(descriptions, function (idf) {
-                            for (q in idf) {
-                                if (idf[q].contains(keywordsToSearch.split(', '))) {
-                                    seriesCopy.push(res2[r][0]);
-                                }
-                            }
-                        });
-                    });
-                }
-                seriesNodes = seriesCopy;
-                seriesCopy = [];
-            }
+                });
+            });
         });
     });
-
-    console.log("SHOULD BE SECOND");
-    console.log(seriesNodes);
-    return seriesNodes;
-}
-
-function showSeries(userSeries) {
-
-    if (userSeries.length == 0) {
-        return;
-    }
-
-    console.log("IN SHOW")
-    console.log(userSeries);
-
-    var kont;
-
-    window.sctpClient.create_node(sc_type_const).done(function (kontur) {
-        kont = kontur;
-        for (ser in userSeries) {
-            window.sctpClient.create_arc(sc_type_arc_pos_const_perm, kontur, ser);
-        }
-
-    });
-    SCWeb.core.Main.doDefaultCommand([kont]);
 }
