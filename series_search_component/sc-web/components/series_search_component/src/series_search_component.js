@@ -92,15 +92,12 @@ function findSeries(searchParams) {
             for (let i = 0; i < result.length; ++i) {
                 seriesNodes.push(result[i][2]);
             }
-            console.log("Found all series:");
-            console.log(seriesNodes);
         }).done(function () {
             let promises = [];
             let promises2 = [];
             let foundYears = [];
 
             if (searchParams.needsSearchYear) {
-                console.log("Needs year searching...")
                 for (let i = 0; i < seriesNodes.length; ++i) {
                     let ser = seriesNodes[i];
                     promises.push(window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_5F_A_A_A_F, [
@@ -113,21 +110,15 @@ function findSeries(searchParams) {
                         promises2.push(window.sctpClient.get_link_content(result[0][2]).done(function (yearStr) {
                             if (yearStr == searchParams.year) {
                                 foundYears.push(result[0][0]);
-                                console.log(result[0][0] + " mathes year, adding to copyList...")
                             }
                         }));
                     }));
                 }
             }
-            console.log(promises)
-            console.log(promises2);
             $.when.apply($, promises).done(function () {
-                console.log(promises2);
                 $.when.apply($, promises2).done(function () {
                     if (searchParams.needsSearchYear) {
                         seriesNodes = seriesNodes.filter(item => foundYears.includes(item));
-                        console.log("Filtered years");
-                        console.log(seriesNodes);
                     }
                 }).done(function () {
                     let promisesSer = [];
@@ -135,10 +126,8 @@ function findSeries(searchParams) {
                     let foundSeasons = []
 
                     if (searchParams.needsSearchSeasons) {
-                        console.log("Needs seasons search...")
                         for (let i = 0; i < seriesNodes.length; ++i) {
                             let ser = seriesNodes[i];
-                            console.log("Series (in seasons) sc_addr: " + ser);
                             promisesSer.push(window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_5F_A_A_A_F, [
                                 ser,
                                 sc_type_const,
@@ -146,29 +135,19 @@ function findSeries(searchParams) {
                                 sc_type_arc_pos_const_perm,
                                 nrelSeasons
                             ]).then(function (result2) {
-                                console.log("Series iterator done")
                                 promises2Ser.push(window.sctpClient.get_link_content(result2[0][2]).done(function (seasonsStr) {
-                                    console.log("Link content: " + seasonsStr)
                                     if (+seasonsStr >= +searchParams.seasons) {
                                         foundSeasons.push(result2[0][0]);
-                                        console.log(result2[0][0] + " mathes seasons, adding to copyList...")
                                     }
                                 }));
                             }, function() {console.log("ERROR")}));
                         }
                     }
 
-                    console.log("Near $.when in series")
                     $.when.apply($, promisesSer).done(function () {
-                        console.log("promises1 good")
-                        console.log(promises2Ser)
-
                         $.when.apply($, promises2Ser).done(function () {
-                            console.log("promises2 good")
                             if (searchParams.needsSearchSeasons) {
                                 seriesNodes = seriesNodes.filter(item => foundSeasons.includes(item));
-                                console.log("Filtered seasons");
-                                console.log(seriesNodes);
                             }
                         }).done(function () {
                             let promises = [];
@@ -176,11 +155,8 @@ function findSeries(searchParams) {
                             let foundKeywords = [];
 
                             if (searchParams.needsSearchKeywords) {
-                                console.log("Needs keywords search...")
-
                                 for (let i = 0; i < seriesNodes.length; ++i) {
                                     let ser = seriesNodes[i];
-                                    console.log("Series (in keywords) sc_addr: " + ser);
                                     promises.push(window.sctpClient.iterate_elements(SctpIteratorType.SCTP_ITERATOR_5F_A_A_A_F, [
                                         ser,
                                         sc_type_const,
@@ -189,11 +165,8 @@ function findSeries(searchParams) {
                                         nrelDescription
                                     ]).done(function (result3) {
                                         promises2.push(window.sctpClient.get_link_content(result3[0][2]).done(function (descrStr) {
-                                            console.log(descrStr);
-                                            console.log(searchParams.keywordsToSearch);
                                             if( searchParams.keywordsToSearch.split(', ').some(keyword => descrStr.includes(keyword) )) {
                                                 foundKeywords.push(result3[0][0]);
-                                                console.log(result3[0][0] + " mathes keywords, adding to copyList...")
                                             }
                                         }));
                                     }));
@@ -204,11 +177,8 @@ function findSeries(searchParams) {
                                 $.when.apply($, promises2).done(function () {
                                     if (searchParams.needsSearchKeywords) {
                                         seriesNodes = seriesNodes.filter(item => foundKeywords.includes(item));
-                                        console.log("Filtered keywords");
-                                        console.log(seriesNodes);
                                     }
                                 }).done(function () {
-                                    console.log("Showing " + seriesNodes);
                                     if (seriesNodes.length == 0) {
                                         return;
                                     }
