@@ -1,14 +1,14 @@
-SeriesComponent = {
+SeriesAddComponent = {
     ext_lang: 'series_code',
     formats: ['format_series_json'],
     struct_support: true,
 
     factory: function (sandbox) {
-        return new setViewerWindow(sandbox);
+        return new setSeriesAddViewerWindow(sandbox);
     }
 };
 
-var setViewerWindow = function (sandbox) {
+var setSeriesAddViewerWindow = function (sandbox) {
 
     var self = this;
     this.sandbox = sandbox;
@@ -56,7 +56,7 @@ var setViewerWindow = function (sandbox) {
     this.sandbox.eventApplyTranslation = $.proxy(this.applyTranslation, this);
 };
 
-SCWeb.core.ComponentManager.appendComponentInitialize(SeriesComponent);
+SCWeb.core.ComponentManager.appendComponentInitialize(SeriesAddComponent);
 
 function getUserSeries(nameString, yearString, seasonsString, descriptionString) {
     if (isValidUserInput(nameString, descriptionString) != 1)

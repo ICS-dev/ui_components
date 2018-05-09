@@ -4,11 +4,11 @@ SeriesSearchComponent = {
     struct_support: true,
 
     factory: function (sandbox) {
-        return new setViewerWindow1(sandbox);
+        return new setSeriesSearchViewerWindow(sandbox);
     }
 };
 
-var setViewerWindow1 = function (sandbox) {
+var setSeriesSearchViewerWindow = function (sandbox) {
 
     var self = this;
     this.sandbox = sandbox;
@@ -51,7 +51,7 @@ var setViewerWindow1 = function (sandbox) {
                             needsSearchSeasons: seasonsChecked,
                             seasons: episodesString.toString(),
                             needsSearchKeywords: keywordsChecked,
-                            keywordsToSearch: keywordsString,
+                            keywordsToSearch: keywordsString.toLowerCase(),
                         };
 
                         findSeries(searchParams);
