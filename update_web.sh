@@ -16,5 +16,7 @@ cd ../ui_components/series_add_component
 grunt build
 cd ../../ui_components/series_search_component
 grunt build
+cd ../../ui_components/search_film_by_cinocompany_and_year
+grunt build
 
 cd ../../scripts
