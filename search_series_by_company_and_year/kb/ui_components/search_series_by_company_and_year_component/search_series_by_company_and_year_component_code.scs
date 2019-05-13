@@ -1,0 +1,27 @@
+format_search_series_by_company_and_year_json
+<- sc_node_not_relation;
+<- format;
+=> nrel_main_idtf:
+	[формат series search (json)] 
+	(* 
+	<- lang_ru;;
+	 *);
+=> nrel_main_idtf:
+	[format series search (json)] 
+	(* 
+	<- lang_en;;
+	*);
+=> nrel_mimetype:
+	[application/json];;
+
+search_series_by_company_and_year_code <- ui_external_languages;
+=> nrel_main_idtf: 
+	[Поиск сериала по определенной компании и году]
+	(* 
+	<- lang_ru;;
+	 *);
+=> nrel_main_idtf: 
+	[Find series by exact company and year] 
+	(* 
+	<- lang_en;;
+	*);;

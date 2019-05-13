@@ -1,0 +1,8 @@
+ui_search_series_by_company_and_year_in_memory
+	<- ui_scgg_control; sc_node_not_relation;
+	=> nrel_main_idtf:
+		[Найти сериалы по определeнной компании и году]
+		(* <- lang_ru;; *);
+	=> nrel_main_idtf:
+        [Find series by exact company and year]
+(* <- lang_en;; *);;

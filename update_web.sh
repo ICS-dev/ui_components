@@ -25,5 +25,11 @@ grunt build
 cd ../../ui_components/search_cinocompanies_by_country_and_year
 npm install
 grunt build
+cd ../../ui_components/search_film_by_producer_and_year
+npm install
+grunt build
+cd ../../ui_components/search_series_by_company_and_year
+npm install
+grunt build
 
 cd ../../scripts
