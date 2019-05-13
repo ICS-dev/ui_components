@@ -1,0 +1,27 @@
+format_search_festival_by_year_and_country_json
+<- sc_node_not_relation;
+<- format;
+=> nrel_main_idtf:
+	[формат festival search (json)] 
+	(* 
+	<- lang_ru;;
+	 *);
+=> nrel_main_idtf:
+	[format festival search (json)] 
+	(* 
+	<- lang_en;;
+	*);
+=> nrel_mimetype:
+	[application/json];;
+
+search_festival_by_year_and_country_code <- ui_external_languages;
+=> nrel_main_idtf: 
+	[Поиск фестивалей по году основания и месту]
+	(* 
+	<- lang_ru;;
+	 *);
+=> nrel_main_idtf: 
+	[Find festival by year and country] 
+	(* 
+	<- lang_en;;
+	*);;
