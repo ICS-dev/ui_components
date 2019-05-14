@@ -34,6 +34,12 @@ grunt build
 cd ../../ui_components/search_series_by_company_and_year
 npm install
 grunt build
+cd ../../ui_components/search_film_by_genre_and_actor
+npm install
+grunt build
+cd ../../ui_components/search_film_by_country_and_age_limit
+npm install
+grunt build
 cd ../../ui_components/search_video_sequences_by_age_limit_and_country
 npm install
 grunt build
