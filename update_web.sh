@@ -40,5 +40,11 @@ grunt build
 cd ../../ui_components/search_film_by_country_and_age_limit
 npm install
 grunt build
+cd ../../ui_components/search_video_sequences_by_age_limit_and_country
+npm install
+grunt build
+cd ../../ui_components/search_films_by_actor_and_production_year
+npm install
+grunt build
 
 cd ../../scripts
