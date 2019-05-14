@@ -1,0 +1,27 @@
+format_search_video_sequences_by_age_limit_and_country_json
+<- sc_node_not_relation;	
+<- format;
+=> nrel_main_idtf:
+	[формат videoSequences search (json)] 
+	(* 
+	<- lang_ru;;
+	 *);
+=> nrel_main_idtf:
+	[format videoSequences search (json)] 
+	(* 
+	<- lang_en;;
+	*);
+=> nrel_mimetype:
+	[application/json];;
+
+search_video_sequences_by_age_limit_and_country_code <- ui_external_languages;
+=> nrel_main_idtf: 
+	[Поиск видеоряда по возрастному ограничению и стране производителю]
+	(* 
+	<- lang_ru;;
+	 *);
+=> nrel_main_idtf: 
+	[Find video sequences by age limit and country] 
+	(* 
+	<- lang_en;;
+	*);;
